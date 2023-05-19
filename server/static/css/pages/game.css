@@ -1,0 +1,229 @@
+body {
+  background-image: url(/img/day.png);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 100vh;
+  transition: 2.5s ease;
+}
+@media only screen and (max-width: 800px) {
+  body {
+    background-position: 80% center;
+  }
+}
+
+body.night {
+  background-image: url(/img/night.png);
+}
+
+::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsla(0, 0%, 100%, 0.5);
+  border-radius: 0.25rem;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+.overlay .witch-picker {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid hsla(0, 0%, 100%, 0.5);
+  border-radius: 0.25rem;
+  background-color: #FC427B;
+}
+.overlay .witch-picker button {
+  background-color: transparent;
+  transition: background-color 0.5s ease;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  color: white;
+}
+.overlay .witch-picker button:hover {
+  background-color: hsla(0, 0%, 0%, 0.2);
+}
+.overlay .witch-picker button.toggle {
+  background-color: hsla(0, 0%, 0%, 0.2);
+}
+.overlay ul.choose-list {
+  border: 1px solid hsla(0, 0%, 100%, 0.5);
+  border-radius: 0.25rem;
+  list-style: none;
+  padding: 0;
+  width: 200px;
+  max-height: 80vh;
+  overflow-y: overlay;
+  backdrop-filter: blur(5px) brightness(0.85);
+  box-shadow: 0 0 10px 0px rgba(150, 150, 150, 0.2);
+}
+.overlay ul.choose-list li.player {
+  width: 100%;
+}
+.overlay ul.choose-list li.player button {
+  padding: 0 0.2em;
+  position: relative;
+  cursor: pointer;
+  width: 100%;
+  height: 50px;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-family: "Work Sans", sans-serif;
+  overflow: hidden;
+}
+.overlay ul.choose-list li.player button:disabled {
+  background-color: hsla(0, 0%, 0%, 0.25);
+  cursor: not-allowed;
+}
+.overlay ul.choose-list li.player button.dead {
+  background-color: hsla(0, 100%, 50%, 0.25);
+}
+.overlay ul.choose-list li.player button.dead .userName {
+  text-decoration: line-through;
+  color: hsla(0, 0%, 100%, 0.7);
+}
+.overlay ul.choose-list li.player button:disabled::after {
+  background-color: transparent;
+}
+.overlay ul.choose-list li.player button:hover::after {
+  transform: translateX(-2px);
+}
+.overlay ul.choose-list li.player button::after {
+  content: "";
+  position: absolute;
+  transform: translateX(-205px);
+  height: 50px;
+  width: 100%;
+  background-color: hsla(342, 97%, 62%, 0.3);
+  transition: transform 0.5s ease-out;
+  border-radius: 0.25rem;
+  z-index: -1;
+}
+.overlay ul.choose-list li.player button .player-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #FC427B;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 0.5em;
+}
+.overlay ul.choose-list li.player button .userName {
+  font-weight: bold;
+  margin-left: 1em;
+  font-size: 17px;
+}
+.overlay ul.choose-list li.player button .userVotes {
+  margin-left: auto;
+  width: 20%;
+  height: 45%;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50px;
+  color: #000;
+  display: grid;
+  place-content: center;
+  font-size: 15px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  margin-right: 0.2em;
+}
+.overlay ul.choose-list li.player button .userVotes:empty {
+  opacity: 0;
+}
+
+.overlay-seer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.overlay-seer .svg-icon {
+  opacity: 0;
+  transition: 0.5s ease;
+  width: 250px;
+  height: 250px;
+  border: 1px solid hsla(0, 0%, 100%, 0.5);
+  border-radius: 0.25rem;
+  background-color: #FC427B;
+  padding: 1rem;
+}
+.overlay-seer .svg-icon svg {
+  max-width: 250px;
+  max-height: 250px;
+}
+.overlay-seer .svg-icon.show {
+  opacity: 1;
+}
+
+.overlay-witch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.overlay-dead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.5s ease;
+}
+.overlay-dead .inner {
+  width: 25vw;
+  height: 40vh;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.overlay-dead.show {
+  visibility: visible;
+  opacity: 1;
+}
+.overlay-dead.day {
+  animation: killColor 1s ease 2s forwards;
+}
+.overlay-dead.day .inner {
+  background-image: url(/img/scythe.png);
+  transform: rotate(-45deg);
+  animation: killDay 3s ease-in forwards;
+}
+@keyframes killDay {
+  to {
+    transform: rotate(45deg);
+  }
+}
+@keyframes killColor {
+  to {
+    background-color: rgba(187, 10, 30, 0.5);
+  }
+}
+
+/*# sourceMappingURL=game.css.map */

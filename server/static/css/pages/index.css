@@ -1,0 +1,50 @@
+.input-code {
+  margin-top: 20px;
+  height: 25px;
+}
+.input-code form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.input-code .group {
+  display: flex;
+  flex-direction: row;
+  height: max-content;
+}
+.input-code .group input {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+  height: 100%;
+  padding: 0 2px;
+  max-height: 100%;
+  width: 9em;
+  font-size: 18px;
+  border: 2px solid hsla(0deg, 0%, 0%, 0.2);
+  outline: none;
+  font-family: "Work Sans", sans-serif;
+  font-weight: bold;
+  transition: border-color 0.5s ease;
+}
+.input-code .group input:hover, .input-code .group input:focus {
+  border-color: hsla(0deg, 0%, 0%, 0.5);
+}
+.input-code .group button {
+  color: white;
+  width: calc(1em + 20px);
+  height: 100%;
+  cursor: pointer;
+  background-color: hsl(144deg, 100%, 36%);
+  border: none;
+  outline: none;
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+.input-code span.caption {
+  color: hsla(0deg, 0%, 0%, 0.5);
+  max-width: calc(10em + 20px);
+  margin-top: 5px;
+  display: inline-block;
+}
+
+/*# sourceMappingURL=index.css.map */

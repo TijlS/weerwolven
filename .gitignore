@@ -1,0 +1,9 @@
+node_modules/
+app/
+.vscode/
+
+.env
+.mdb
+
+game_old_bg.txt
+test.js

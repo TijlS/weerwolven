@@ -1,0 +1,42 @@
+body {
+  background-image: url(/img/day.png);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 100vh;
+}
+
+button {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  border: none;
+  font-family: "Work Sans", sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: 0.5s ease;
+  margin: 5px;
+  background-color: #fff;
+}
+button:hover {
+  box-shadow: 2px 2px 8px 2px rgba(90, 90, 90, 0.1);
+}
+button:active {
+  background-color: rgb(240, 240, 240);
+}
+
+.starting-controls,
+.game-controls,
+.players {
+  padding: 2.5vh 3.5vw;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.25rem;
+  margin-bottom: 2vh;
+}
+
+.players li {
+  color: white;
+}
+
+/*# sourceMappingURL=admin.css.map */

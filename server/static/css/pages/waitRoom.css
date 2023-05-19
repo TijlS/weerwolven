@@ -1,0 +1,16 @@
+.spinner {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 10px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #fc4079;
+  animation: spin 2.5s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*# sourceMappingURL=waitRoom.css.map */

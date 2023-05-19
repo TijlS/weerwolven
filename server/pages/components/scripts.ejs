@@ -1,0 +1,9 @@
+<script src="/socket.io/socket.io.min.js"></script>
+<script defer>
+    const socket = io()
+
+    socket.on('reset', () => {
+        if (window.location == "/admin") window.location = "/admin"
+        else window.location = "/"
+    })
+</script>

@@ -1,0 +1,21 @@
+<%- include('components/head', { links: [{rel: "stylesheet", href: "/css/pages/waitRoom.css"}] }) %> 
+
+<div class="flex flex-full flex-center flex-column">
+    <div class="spinner"></div>
+</div>
+
+<%- include('components/scripts') %> 
+<script defer>
+    document.cookie = "uuid=<%= userId %>;path=/;"
+
+    socket.emit('append_socket', { uuid: "<%= userId %>" })
+
+    socket.on('game-update', data => {
+        if(data == "start_game"){
+            window.location.href = "/role";
+        }
+    })
+</script>
+
+</body>
+</html>

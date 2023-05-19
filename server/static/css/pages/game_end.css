@@ -1,0 +1,29 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  background-color: #ff3333;
+  text-align: center;
+}
+.overlay * {
+  color: #fff;
+  font-size: 2.5rem;
+}
+.overlay.won {
+  background-color: #4BB543;
+}
+.overlay a {
+  text-decoration: none;
+  background-image: linear-gradient(transparent 0%, transparent 90%, #fff 90%, #fff 100%);
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-position-x: right;
+  transition: background-size 300ms;
+}
+.overlay a:hover {
+  background-size: 100% 100%;
+  background-position-x: left;
+}
+
+/*# sourceMappingURL=game_end.css.map */
