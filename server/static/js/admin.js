@@ -62,6 +62,9 @@ document.querySelector('.werewolves').addEventListener('click', () => {
 document.querySelector('.seer').addEventListener('click', () => {
     socket.emit('!a-game-update', { name: 'call_person', person: 'seer' });
 });
+document.querySelector('.witch').addEventListener('click', () => {
+    socket.emit('!a-game-update', { name: 'call_person', person: 'witch' });
+});
 //#endregion
 
 const changeButtons = (time) => {

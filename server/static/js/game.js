@@ -2,7 +2,7 @@ let isDay = true;
 let wwActive = false;
 const picker = new UserPicker(document.querySelector('.overlay'), userArray, currentUserRole, socket, currentUserUuid)
 
-let uuid = document.cookie.split('=')[1]
+let uuid = document.cookie.split('; ').map(c => c.split('=')).find(c => c[0] == "uuid")[1]
 
 socket.on('game_update', (data) => {
     switch (data.name) {
@@ -36,6 +36,12 @@ socket.on('game_update', (data) => {
                         picker.show();
                     }
                     break;
+                case 'witch': 
+                    if (currentUserRole == "witch") {
+                        picker.witchActionBar.classList.remove('hidden')
+                        picker.show()
+                    }
+                    break;
             }
     }
 })
@@ -52,9 +58,10 @@ socket.on('death_msg', uuidDead => {
     if(uuidDead == uuid){
         if(currentUserRole == "hunter"){
             picker.hunterPick()
+        } else {
+            document.querySelector('.overlay-dead').classList.add('show', 'day')
+            picker.die()
         }
-        document.querySelector('.overlay-dead').classList.add('show', 'day')
-        picker.die()
     }
 })
 

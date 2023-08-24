@@ -13,6 +13,7 @@ class UserPicker {
         this.mode = mode;
         this.isDay = true;
         this.witchAction = 3;
+        this.witchActionBar = null;
         this.root = document.createElement("ul");
         this.socket = socket;
         this.currentUuid = uuid;
@@ -126,6 +127,8 @@ function initUserPicker(UserPicker) {
             }
             $div.appendChild($btn);
         }
+        $div.classList.add('hidden')
+        UserPicker.witchActionBar = $div
         UserPicker.parent.append($div)
     }
     UserPicker.parent.append(UserPicker.root)
@@ -366,17 +369,17 @@ function UserPickerClick(UserPicker, button, user, socket) {
     } else {
         switch (UserPicker.mode) {
             case "cupido":
+                cupidoPickedAmnt++;
+                // UserPicker.children.forEach(child => {
+                //     child.querySelector('button').style.background = "";
+                // })
+                button.style.background = "hsla(342, 97%, 62%, 0.3)";
+                cupidoPickedIds.push(button.dataset.userid);
                 if (cupidoPickedAmnt >= 2) {
                     socket.emit('!g-cupido-choose', cupidoPickedIds);
                     UserPicker.mode = "farmer"; // Set user to farmer after chosing lovers
                     UserPicker.hide()
                 }
-                // UserPicker.children.forEach(child => {
-                //     child.querySelector('button').style.background = "";
-                // })
-                button.style.background = "hsla(342, 97%, 62%, 0.3)";
-                cupidoPickedAmnt++;
-                cupidoPickedIds.push(button.dataset.userid);
                 break;
             case "werewolf":
                 UserPicker.children.forEach(child => {
@@ -387,6 +390,7 @@ function UserPickerClick(UserPicker, button, user, socket) {
                 break;
             case "witch":
                 if (UserPicker.witchAction !== 3) { // Selected action
+                    UserPicker.witchActionBar.classList.add('hidden')
                     if (UserPicker.witchAction == 0) { // Kill
                         document.querySelectorAll('.witch-picker-button')[0].disabled = true;
                         UserPicker.children.forEach(child => {
@@ -451,7 +455,12 @@ function hunter(UserPicker){
     UserPicker.show()
 
     UserPicker.children.forEach(child => {
+        /**
+         * @type {HTMLButtonElement} 
+         */
         let btn = child.querySelector('button');
+        
+        btn.removeEventListener('click')
         btn.addEventListener('click', () => {
             UserPicker.children.forEach(child => {
                 child.querySelector('button').disabled = true;
@@ -459,7 +468,10 @@ function hunter(UserPicker){
             button.style.background = "hsla(342, 97%, 62%, 0.3)";
             socket.emit('!g-hunter-choose', { id: button.dataset.userid })
             socket.emit('!a-send-deaths')
-            setTimeout(() => { UserPicker.hide() }, 1500);
+            setTimeout(() => { 
+                UserPicker.hide()
+                UserPicker.die()
+            }, 1500);
         })
     })
 }

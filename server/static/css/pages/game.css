@@ -43,6 +43,7 @@ body.night {
   border: 1px solid hsla(0, 0%, 100%, 0.5);
   border-radius: 0.25rem;
   background-color: #FC427B;
+  transition: top 0.5s ease;
 }
 .overlay .witch-picker button {
   background-color: transparent;
@@ -59,6 +60,9 @@ body.night {
 }
 .overlay .witch-picker button.toggle {
   background-color: hsla(0, 0%, 0%, 0.2);
+}
+.overlay .witch-picker.hidden {
+  top: -100%;
 }
 .overlay ul.choose-list {
   border: 1px solid hsla(0, 0%, 100%, 0.5);
@@ -182,6 +186,17 @@ body.night {
   left: 0;
   z-index: 3;
   pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-content: center;
+  color: white;
+  font-size: 25px;
+  transition: background-color 0.5s ease;
+}
+.overlay-witch:not(:empty) {
+  cursor: not-allowed;
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .overlay-dead {

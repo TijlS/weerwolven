@@ -21,7 +21,7 @@ app.use(cookieParser())
 
 instrument(io, {
     auth: false,
-    namespaceName: "/socket_admin"
+    mode: "development",
 });
 
 let players = []
@@ -43,9 +43,14 @@ let roleConf = {
         seer: 1
     },
     5: {
-        farmer: 3,
+        // farmer: 3,
+        farmer: 1,
         werewolf: 1,
         seer: 1,
+        //TESTING
+        hunter: 1,
+        cupido: 0,
+        witch: 1
     },
     6: {
         farmer: 3,
@@ -91,32 +96,41 @@ let roleConf = {
 }
 
 const giveRoles = () => {
-    // console.log('STARTED GIVING ROLES')
+    console.log('STARTED GIVING ROLES')
+
     let amountPlayers = players.length;
-    // console.log('Players: ' + amountPlayers);
+    
+    console.log('Players: ' + amountPlayers);
+    
     if (amountPlayers <= 0) {
         return;
     }
     if (amountPlayers > 10) {
         amountPlayers = "bigger";
     }
-    // console.log('Players after check: ' + amountPlayers);
-    let roles = roleConf[amountPlayers];
-    // console.log('Role config:')
-    // console.log(roles)
     
-    // i = 0;
-    players.forEach(player => {
-        // console.log(`Player ${i}:`)
-        // console.log(player)
+    console.log('Players after check: ' + amountPlayers);
+    
+    let roles = roleConf[amountPlayers];
+    
+    console.log('Role config:')
+    console.log(roles)
+    
+    i = 0;
+    for (const player of players) {
+        console.log(`Player ${i}:`)
+        console.log(player)
+        
         let number = Math.floor(Math.random() * Object.keys(roles).length);
-        // console.log(`Rolled number: ${number}`)
+        console.log(`Rolled number: ${number}`)
+        
         let roleTemp;
         roleTemp = giveTempRoles(number)
-        // console.log(`Temp role: ${roleTemp}`)
+        console.log(`Temp role: ${roleTemp}`)
+        
         //PREVENT USERS FROM GETTING ROLE THAT IS NOT AVAILIBLE
         while (roles[roleTemp] == 0) {
-            // console.log('Role can\'t be chosen, rolling other number')
+            console.log('Role can\'t be chosen, rolling other number')
             //IF PLAYERS >= 10 && ALL OTHER ROLES ARE 0, SET ROLE TO FARMER
             if(amountPlayers == "bigger"){
                 if(roles.werewolf == 0 && roles.seer == 0 && roles.hunter == 0 && roles.cupido == 0 && roles.witch == 0){
@@ -127,9 +141,9 @@ const giveRoles = () => {
             }else{
                 number = Math.floor(Math.random() * Object.keys(roles).length);
             }
-            // console.log(`New number: ${number}`)
+            console.log(`New number: ${number}`)
             roleTemp = giveTempRoles(number)
-            // console.log(`New temp role: ${roleTemp}`)
+            console.log(`New temp role: ${roleTemp}`)
         }
         if (amountPlayers == "bigger" && number == 0) { //more then 10 players, so increase farmer role
             player.role = "farmer";
@@ -161,9 +175,9 @@ const giveRoles = () => {
                     break;
             }
         }
-        // console.log(`Player ${i} has role of ${player.role}, going to next player`)
-        // i++
-    })
+        console.log(`Player ${i} has role of ${player.role}, going to next player`)
+        i++
+    }
 };
 const giveTempRoles = (number) => {
     switch (number) {
@@ -220,6 +234,8 @@ app.get('/game', (req, res) => {
 app.get('/game/end', (req, res) => {
     let uuid = req.cookies.uuid
     const player = players.find(el => el.uuid == uuid);
+
+    console.log(uuid, player)
 
     let won = false;
 
