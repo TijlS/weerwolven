@@ -4,6 +4,11 @@ body {
   background-repeat: no-repeat;
   background-size: cover;
   height: 100vh;
+  transition: background-image 2.5s ease;
+}
+
+body.night {
+  background-image: url(/img/night.png);
 }
 
 button {
@@ -37,6 +42,13 @@ button:active {
 
 .players li {
   color: white;
+}
+
+.clear_cache {
+  position: absolute;
+  top: 1em;
+  left: 1em;
+  background-color: #eee;
 }
 
 /*# sourceMappingURL=admin.css.map */

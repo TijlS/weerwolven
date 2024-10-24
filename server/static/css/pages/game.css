@@ -228,7 +228,7 @@ body.night {
 .overlay-dead.day .inner {
   background-image: url(/img/scythe.png);
   transform: rotate(-45deg);
-  animation: killDay 3s ease-in forwards;
+  animation: killDay 1s cubic-bezier(0.5, 0, 1, 1) forwards;
 }
 @keyframes killDay {
   to {

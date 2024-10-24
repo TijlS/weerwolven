@@ -1,0 +1,85 @@
+<%- include('components/head', { links: [{rel: "stylesheet", href: "/css/pages/game.css"}, {rel: "stylesheet", href: "/css/pages/test.css"}] }) %>
+
+
+    <div class="overlay-test">
+        <button data-dev="time">Change time</button>
+        <button data-dev="picker" data-mode="show">Show picker</button>
+        <button data-dev="picker" data-mode="hide">Hide picker</button>
+        <button data-dev="call" data-who="cupido">Call cupido</button>
+        <button data-dev="call" data-who="seer">Call seer</button>
+        <button data-dev="call" data-who="werewolves">Call werewolves</button>
+        <button data-dev="call" data-who="witch">Call witch</button>
+        <select data-dev="switch_role">
+            <option value="farmer" selected>farmer</option>
+            <option value="cupido">cupido</option>
+            <option value="seer">seer</option>
+            <option value="werewolf">werewolf</option>
+            <option value="witch">witch</option>
+        </select>
+    </div>
+    <div class="flex flex-full flex-center overlay"></div>
+    <div class="flex flex-full flex-center overlay-seer">
+        <div class="svg-icon"></div>
+    </div>
+    <div class="flex flex-center overlay-witch"></div>
+    <div class="flex flex-center overlay-dead">
+        <div class="inner"></div>
+    </div>
+
+    <%- include('components/scripts') %>
+        <script src="/js/UserSelect.js"></script>
+        <script>
+            let userArray = [
+                {
+                    uuid: 1,
+                    socketId: '',
+                    name: 'p1',
+                    role: 'farmer',
+                    isLover: false,
+                    isDead: false,
+                    receivedDeathMsg: false
+                },
+                {
+                    uuid: 2,
+                    socketId: '',
+                    name: 'p2',
+                    role: 'werewolf',
+                    isLover: false,
+                    isDead: false,
+                    receivedDeathMsg: false
+                },
+                {
+                    uuid: 3,
+                    socketId: '',
+                    name: 'p3',
+                    role: 'seer',
+                    isLover: false,
+                    isDead: false,
+                    receivedDeathMsg: false
+                },
+                {
+                    uuid: 4,
+                    socketId: '',
+                    name: 'p4',
+                    role: 'hunter',
+                    isLover: false,
+                    isDead: false,
+                    receivedDeathMsg: false
+                },
+                {
+                    uuid: 5,
+                    socketId: '',
+                    name: 'p5',
+                    role: 'witch',
+                    isLover: false,
+                    isDead: false,
+                    receivedDeathMsg: false
+                },
+            ];
+            let currentUserRole = "farmer";
+            let currentUserUuid = "1"
+        </script>
+        <script defer src="/js/test.js"></script>
+        </body>
+
+        </html>

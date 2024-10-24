@@ -39,6 +39,9 @@ socket.on('game_update', (data) => {
                 case 'witch': 
                     if (currentUserRole == "witch") {
                         picker.witchActionBar.classList.remove('hidden')
+
+                        //Let witch select dead people
+                        picker.tempSelectDead()
                         picker.show()
                     }
                     break;
@@ -63,6 +66,9 @@ socket.on('death_msg', uuidDead => {
             picker.die()
         }
     }
+})
+socket.on('realive', () => {
+    picker.backAlive()
 })
 
 socket.on('!g-update-picker', users => {

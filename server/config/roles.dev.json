@@ -1,0 +1,67 @@
+{
+	"1": {
+		"farmer": 1
+	},
+	"2": {
+		"farmer": 1,
+		"werewolf": 1
+	},
+	"3": {
+		"farmer": 2,
+		"werewolf": 1
+	},
+	"4": {
+		"farmer": 2,
+		"werewolf": 1,
+		"seer": 1
+	},
+	"5": {
+		"farmer": 1,
+		"werewolf": 1,
+		"seer": 1,
+		"hunter": 1,
+		"cupido": 0,
+		"witch": 1
+	},
+	"6": {
+		"farmer": 3,
+		"werewolf": 2,
+		"seer": 1
+	},
+	"7": {
+		"farmer": 4,
+		"werewolf": 2,
+		"seer": 1
+	},
+	"8": {
+		"farmer": 3,
+		"werewolf": 2,
+		"seer": 1,
+		"hunter": 1,
+		"cupido": 1
+	},
+	"9": {
+		"farmer": 3,
+		"werewolf": 2,
+		"seer": 1,
+		"hunter": 1,
+		"cupido": 1,
+		"witch": 1
+	},
+	"10": {
+		"farmer": 3,
+		"werewolf": 3,
+		"seer": 1,
+		"hunter": 1,
+		"cupido": 1,
+		"witch": 1
+	},
+	"bigger": {
+		"farmer": 0,
+		"werewolf": 4,
+		"seer": 1,
+		"hunter": 1,
+		"cupido": 1,
+		"witch": 1
+	}
+}

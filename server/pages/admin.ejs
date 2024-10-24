@@ -1,8 +1,8 @@
-<%- include('components/head', { links: [{rel: "stylesheet", href: "/css/pages/admin.css"}] }) %>
+<%- include('components/head', { links: [{rel: "stylesheet" , href: "/css/pages/admin.css" }] }) %>
+    <button class="clear_cache">Spel resetten</button>
 
     <div class="flex flex-full flex-center flex-column">
         <div class="starting-controls">
-            <button class="clear_cache">Spel resetten</button>
             <button class="show_roles">Rollen tonen</button>
             <button class="game" style="display: none;">Gamescherm tonen</button>
             <button class="start_game" style="display: none;">Begin met spelen</button>
@@ -10,10 +10,12 @@
         <div class="game-controls" style="display: none;">
             <button class="time">Tijd veranderen</button>
             <button class="voting --day">Stemscherm tonen</button>
-            <button class="cupido --night">Cupido oproepen</button>
-            <button class="werewolves --night">Weerwolven oproepen</button>
-            <button class="witch --night">Heks oproepen</button>
-            <button class="seer --night">Ziener oproepen</button>
+            <ol>
+                <button class="cupido --night">Cupido oproepen</button>
+                <button class="seer --night">Ziener oproepen</button>
+                <button class="werewolves --night">Weerwolven oproepen</button>
+                <button class="witch --night">Heks oproepen</button>
+            </ol>
         </div>
         <ul class="players"></ul>
     </div>

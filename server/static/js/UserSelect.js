@@ -1,182 +1,227 @@
 class UserPicker {
-    /**
-     * 
-     * @param {HTMLDivElement} parent 
-     * @param {Array} userList 
-     * @param {String} mode 
-     * @param {WebSocket} socket 
-     */
-    constructor(parent, userList, mode, socket, uuid) {
+	/**
+	 *
+	 * @param {HTMLDivElement} parent
+	 * @param {Array} userList
+	 * @param {String} mode
+	 * @param {WebSocket} socket
+	 */
+	constructor(parent, userList, mode, socket, uuid) {
+		this.parent = parent;
+		this.users = userList;
+		this.children = [];
+		this.mode = mode;
+		this.isDay = true;
+		this.witchAction = 3;
+		this.witchActionBar = null;
+		this.witchUsedPotions = {
+			life: false,
+			death: false,
+		};
+		this.root = document.createElement("ul");
+		this.socket = socket;
+		this.currentUuid = uuid;
+		this.isDead = false;
+		this.busy = false;
+
+		initUserPicker(this);
+	}
+
+    reload(parent, userList, mode, socket, uuid){
         this.parent = parent;
-        this.users = userList;
-        this.children = [];
-        this.mode = mode;
-        this.isDay = true;
-        this.witchAction = 3;
-        this.witchActionBar = null;
-        this.root = document.createElement("ul");
-        this.socket = socket;
-        this.currentUuid = uuid;
-        this.isDead = false
-
-        initUserPicker(this);
+		this.users = userList;
+		this.children = [];
+		this.mode = mode;
+		this.isDay = true;
+		this.witchAction = 3;
+		this.witchActionBar = null;
+		this.witchUsedPotions = {
+			life: false,
+			death: false,
+		};
+		this.root = document.createElement("ul");
+		this.socket = socket;
+		this.currentUuid = uuid;
+		this.isDead = false;
+		this.busy = false;
+        
+        initUserPicker(this)
     }
 
-    show() {
-        if(this.isDead) return;
-        this.root.style.display = "block";
-        this.children.forEach(child => {
-            const btn = child.querySelector('button:not([data-current-user]):not([data-is-dead])')
-            if(btn) btn.disabled = false;
-        });
-    }
+	show() {
+		if (this.isDead) return;
+		this.root.style.display = "block";
+		this.children.forEach((child) => {
+			const btn = child.querySelector(
+				"button:not([data-current-user]):not([data-is-dead])"
+			);
+			if (btn) btn.disabled = false;
+		});
+	}
 
-    hide() {
-        this.root.style.display = "none";
-    }
+	hide() {
+		if (this.busy) return;
+		this.root.style.display = "none";
+	}
 
-    toggleTime(time) {
-        this.isDay = time;
-    }
+	toggleTime(time) {
+		this.isDay = time;
+	}
 
-    /**
-     * @param {Array} users 
-     */
-    updateUsers(users) {
-        this.users = users;
-        updateUserPicker(this);
-    }
+	/**
+	 * @param {Array} users
+	 */
+	updateUsers(users) {
+		this.users = users;
+		updateUserPicker(this);
+	}
 
-    updateVotes(votes){
-        updateVotesUI(this, votes)
-    }
+	updateVotes(votes) {
+		updateVotesUI(this, votes);
+	}
 
-    hunterPick(){
-        hunter(this)
-    }
+	hunterPick() {
+		this.busy = true;
+		hunter(this);
+	}
 
-    die(){
-        this.isDead = true
-    }
-    backAlive() {
-        this.isDead = false
-    }
+	die() {
+		this.isDead = true;
+	}
+	backAlive() {
+		this.isDead = false;
+	}
 
+	tempSelectDead() {
+		this.children.forEach((child) => {
+			const btn = child.querySelector("button:not([data-current-user])");
+			if (btn) btn.disabled = false;
+		});
+	}
 }
 
 /**
  * @param {UserPicker} UserPicker
  */
 function initUserPicker(UserPicker) {
-    UserPicker.root.style.display = "none";
-    UserPicker.root.classList.add('choose-list');
-    UserPicker.users.forEach((user) => {
-        const $li = document.createElement("li");
-        $li.classList.add('player');
-        const $btn = document.createElement("button");
-        const $playerIcon = document.createElement("div");
-        $playerIcon.classList.add('player-icon');
-        $playerIcon.innerHTML = user.isDead ? `<i class="fas fa-user-slash"></i>` : `<i class="fas fa-user"></i>`;
-        const $userName = document.createElement('span');
-        $userName.classList.add('userName');
-        $userName.textContent = user.name;
-        const $userVotes = document.createElement('div');
-        $userVotes.classList.add('userVotes')
-        $btn.dataset.userid = user.uuid;
+	UserPicker.root.style.display = "none";
+	UserPicker.root.classList.add("choose-list");
+	UserPicker.users.forEach((user) => {
+		const $li = document.createElement("li");
+		$li.classList.add("player");
+		const $btn = document.createElement("button");
+		const $playerIcon = document.createElement("div");
+		$playerIcon.classList.add("player-icon");
+		$playerIcon.innerHTML = user.isDead
+			? `<i class="fas fa-user-slash"></i>`
+			: `<i class="fas fa-user"></i>`;
+		const $userName = document.createElement("span");
+		$userName.classList.add("userName");
+		$userName.textContent = user.name;
+		const $userVotes = document.createElement("div");
+		$userVotes.classList.add("userVotes");
+		$btn.dataset.userid = user.uuid;
 
-        if (user.uuid == UserPicker.currentUuid) {
-            $btn.dataset.currentUser = true
-            $btn.disabled = true
-        }else {
-            $btn.addEventListener("click", () => {
-                UserPickerClick(UserPicker, $btn, user, UserPicker.socket);
-            });
-        }
+		if (user.uuid == UserPicker.currentUuid) {
+			$btn.dataset.currentUser = true;
+			$btn.disabled = true;
+		} else {
+			$btn.addEventListener("click", () => {
+				UserPickerClick(UserPicker, $btn, user, UserPicker.socket);
+			});
+		}
 
-        if (user.isDead) {
-            $btn.classList.add('dead')
-            $btn.dataset.isDead = true
-            $btn.disabled = true
-        }
-        $btn.append($playerIcon, $userName, $userVotes)
-        $li.append($btn);
-        UserPicker.children.push($li);
-        UserPicker.root.append($li);
-    });
-    if (UserPicker.mode == "witch") {
-        const $div = document.createElement('div')
-        $div.classList.add('witch-picker')
-        for (let i = 0; i < 3; i++) {
-            const $btn = document.createElement('button')
-            $btn.classList.add('witch-picker-button')
-            $btn.addEventListener('click', () => {
-                $div.querySelectorAll('button').forEach(btn => btn.classList.remove('toggle'));
-                $btn.classList.add('toggle');
-                UserPicker.witchAction = i;
-            })
-            switch (i) {
-                case 0:
-                    $btn.innerHTML = `<i class="fas fa-skull-crossbones fa-2x"></i>`
-                    break;
-                case 1:
-                    $btn.innerHTML = `<i class="fas fa-ban fa-2x"></i>`
-                    break;
-                case 2:
-                    $btn.innerHTML = `<i class="fas fa-heartbeat fa-2x"></i>`
-                    break;
-            }
-            $div.appendChild($btn);
-        }
-        $div.classList.add('hidden')
-        UserPicker.witchActionBar = $div
-        UserPicker.parent.append($div)
-    }
-    UserPicker.parent.append(UserPicker.root)
+		if (user.isDead) {
+			$btn.classList.add("dead");
+			$btn.dataset.isDead = true;
+			$btn.disabled = true;
+		}
+		$btn.append($playerIcon, $userName, $userVotes);
+		$li.append($btn);
+		UserPicker.children.push($li);
+		UserPicker.root.append($li);
+	});
+	if (UserPicker.mode == "witch") {
+		const $div = document.createElement("div");
+		$div.classList.add("witch-picker");
+		for (let i = 0; i < 3; i++) {
+			const $btn = document.createElement("button");
+			$btn.classList.add("witch-picker-button");
+			$btn.addEventListener("click", () => {
+				$div.querySelectorAll("button").forEach((btn) =>
+					btn.classList.remove("toggle")
+				);
+				$btn.classList.add("toggle");
+				UserPicker.witchAction = i;
+			});
+			switch (i) {
+				case 0:
+					$btn.innerHTML = `<i class="fas fa-skull-crossbones fa-2x"></i>`;
+					$btn.dataset.action = "WITCH_KILL";
+					break;
+				case 1:
+					$btn.innerHTML = `<i class="fas fa-ban fa-2x"></i>`;
+					$btn.dataset.action = "WITCH_SKIP";
+					break;
+				case 2:
+					$btn.innerHTML = `<i class="fas fa-heartbeat fa-2x"></i>`;
+					$btn.dataset.action = "WITCH_HEAL";
+					break;
+			}
+			$div.appendChild($btn);
+		}
+		$div.classList.add("hidden");
+		UserPicker.witchActionBar = $div;
+		UserPicker.parent.append($div);
+	}
+	UserPicker.parent.append(UserPicker.root);
 }
 
 /**
  * @param {UserPicker} UserPicker
  */
 function updateUserPicker(UserPicker) {
-    UserPicker.root.innerHTML = "";
-    UserPicker.users.forEach((user) => {
-        const $li = document.createElement("li");
-        $li.classList.add('player');
-        const $btn = document.createElement("button");
-        const $playerIcon = document.createElement("div");
-        $playerIcon.classList.add('player-icon');
-        $playerIcon.innerHTML = user.isDead ? `<i class="fas fa-user-slash"></i>` : `<i class="fas fa-user"></i>`;
-        const $userName = document.createElement('span');
-        $userName.classList.add('userName');
-        $userName.textContent = user.name;
-        const $userVotes = document.createElement('div');
-        $userVotes.classList.add('userVotes')
-        $btn.dataset.userid = user.uuid;
+	UserPicker.root.innerHTML = "";
+	UserPicker.users.forEach((user) => {
+		const $li = document.createElement("li");
+		$li.classList.add("player");
+		const $btn = document.createElement("button");
+		const $playerIcon = document.createElement("div");
+		$playerIcon.classList.add("player-icon");
+		$playerIcon.innerHTML = user.isDead
+			? `<i class="fas fa-user-slash"></i>`
+			: `<i class="fas fa-user"></i>`;
+		const $userName = document.createElement("span");
+		$userName.classList.add("userName");
+		$userName.textContent = user.name;
+		const $userVotes = document.createElement("div");
+		$userVotes.classList.add("userVotes");
+		$btn.dataset.userid = user.uuid;
 
-        if (user.uuid == UserPicker.currentUuid) {
-            $btn.dataset.currentUser = true
-            $btn.disabled = true
-        }else {
-            $btn.addEventListener("click", () => {
-                UserPickerClick(UserPicker, $btn, user, UserPicker.socket);
-            });
-        }
+		if (user.uuid == UserPicker.currentUuid) {
+			$btn.dataset.currentUser = true;
+			$btn.disabled = true;
+		} else {
+			$btn.addEventListener("click", () => {
+				UserPickerClick(UserPicker, $btn, user, UserPicker.socket);
+			});
+		}
 
-        if (user.isDead) {
-            $btn.classList.add('dead')
-            $btn.dataset.isDead = true
-            $btn.disabled = true
-        }
-        $btn.append($playerIcon, $userName, $userVotes)
-        $li.append($btn);
-        UserPicker.children.push($li);
-        UserPicker.root.append($li);
-    });
+		if (user.isDead) {
+			$btn.classList.add("dead");
+			$btn.dataset.isDead = true;
+			$btn.disabled = true;
+		}
+		$btn.append($playerIcon, $userName, $userVotes);
+		$li.append($btn);
+		UserPicker.children.push($li);
+		UserPicker.root.append($li);
+	});
 }
 
 //#region ROLES SVG
 let rolesSVG = {
-        werewolf: `<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	werewolf: `<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
     viewBox="0 0 468.296 468.296" style="enable-background:new 0 0 468.296 468.296;" xml:space="preserve">
 <g>
    <path style="fill:#2F4859;" d="M65.57,19.005l32.131,110.097l83.71-59.082L88.439,2.864C77.019-5.385,61.623,5.481,65.57,19.005z"
@@ -244,7 +289,7 @@ let rolesSVG = {
        c-9.116-24.726-34.029-39.899-60.191-36.714l-12.886,1.577C140.236,167.81,139.699,170.042,141.135,171.012z"/>
 </g>
         </svg>`,
-        seer: `<svg version="1.1" id="Capa_2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	seer: `<svg version="1.1" id="Capa_2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
     viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
 <g>
    <circle style="fill:#955BA5;" cx="256" cy="167.724" r="167.724"/>
@@ -274,8 +319,8 @@ let rolesSVG = {
    <polygon style="fill:#DF4D60;" points="123.586,388.414 256,476.69 379.586,388.414 	"/>
 </g>
         </svg>`,
-        cupido: `<svg height="511pt" viewBox="0 -14 511.99893 511" width="511pt" xmlns="http://www.w3.org/2000/svg"><g fill="#937fe6"><path d="m396.984375 341.785156h50.511719c9.136718 0 17.898437 3.632813 24.359375 10.089844l35.789062 35.789062c9.304688 9.304688 2.714844 25.214844-10.445312 25.214844h-29.648438l-71.460937-44.6875zm0 0"/><path d="m369.683594 369.085938v50.507812c0 9.140625 3.632812 17.902344 10.089844 24.363281l35.789062 35.789063c9.304688 9.304687 25.214844 2.714844 25.214844-10.445313v-29.648437l-44.6875-71.460938zm0 0"/><path d="m115.015625 341.785156h-50.511719c-9.136718 0-17.898437 3.632813-24.359375 10.089844l-35.789062 35.789062c-9.304688 9.304688-2.714844 25.21875 10.445312 25.21875h29.648438l71.460937-44.6875zm0 0"/><path d="m142.316406 369.085938v50.507812c0 9.140625-3.632812 17.902344-10.089844 24.363281l-35.789062 35.789063c-9.304688 9.304687-25.214844 2.714844-25.214844-10.445313v-29.648437l44.6875-71.460938zm0 0"/></g><path d="m416.777344 40.550781-372.328125 372.328125c-3.480469 3.480469-3.480469 9.125 0 12.605469l14.167969 14.167969c3.480468 3.480468 9.125 3.480468 12.605468 0l372.328125-372.328125zm0 0" fill="#ff98c9"/><path d="m277.851562 179.472656 26.773438 26.773438-70.480469 70.480468-26.773437-26.773437zm0 0" fill="#eb6da8"/><path d="m477.292969 6.808594c-148.578125-35-156.296875 87.292968-81.996094 81.996094-5.296875 74.296874 117 66.582031 81.996094-81.996094zm0 0" fill="#937fe6"/><path d="m95.222656 40.550781 372.332032 372.332031c3.480468 3.480469 3.480468 9.121094 0 12.601563l-14.171876 14.167969c-3.480468 3.484375-9.121093 3.484375-12.601562 0l-372.335938-372.328125zm0 0" fill="#ff98c9"/><path d="m34.707031 6.808594c148.578125-35 156.296875 87.292968 81.996094 81.996094 5.296875 74.296874-117 66.582031-81.996094-81.996094zm0 0" fill="#937fe6"/></svg>`,
-        farmer: `<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	cupido: `<svg height="511pt" viewBox="0 -14 511.99893 511" width="511pt" xmlns="http://www.w3.org/2000/svg"><g fill="#937fe6"><path d="m396.984375 341.785156h50.511719c9.136718 0 17.898437 3.632813 24.359375 10.089844l35.789062 35.789062c9.304688 9.304688 2.714844 25.214844-10.445312 25.214844h-29.648438l-71.460937-44.6875zm0 0"/><path d="m369.683594 369.085938v50.507812c0 9.140625 3.632812 17.902344 10.089844 24.363281l35.789062 35.789063c9.304688 9.304687 25.214844 2.714844 25.214844-10.445313v-29.648437l-44.6875-71.460938zm0 0"/><path d="m115.015625 341.785156h-50.511719c-9.136718 0-17.898437 3.632813-24.359375 10.089844l-35.789062 35.789062c-9.304688 9.304688-2.714844 25.21875 10.445312 25.21875h29.648438l71.460937-44.6875zm0 0"/><path d="m142.316406 369.085938v50.507812c0 9.140625-3.632812 17.902344-10.089844 24.363281l-35.789062 35.789063c-9.304688 9.304687-25.214844 2.714844-25.214844-10.445313v-29.648437l44.6875-71.460938zm0 0"/></g><path d="m416.777344 40.550781-372.328125 372.328125c-3.480469 3.480469-3.480469 9.125 0 12.605469l14.167969 14.167969c3.480468 3.480468 9.125 3.480468 12.605468 0l372.328125-372.328125zm0 0" fill="#ff98c9"/><path d="m277.851562 179.472656 26.773438 26.773438-70.480469 70.480468-26.773437-26.773437zm0 0" fill="#eb6da8"/><path d="m477.292969 6.808594c-148.578125-35-156.296875 87.292968-81.996094 81.996094-5.296875 74.296874 117 66.582031 81.996094-81.996094zm0 0" fill="#937fe6"/><path d="m95.222656 40.550781 372.332032 372.332031c3.480468 3.480469 3.480468 9.121094 0 12.601563l-14.171876 14.167969c-3.480468 3.484375-9.121093 3.484375-12.601562 0l-372.335938-372.328125zm0 0" fill="#ff98c9"/><path d="m34.707031 6.808594c148.578125-35 156.296875 87.292968 81.996094 81.996094 5.296875 74.296874-117 66.582031-81.996094-81.996094zm0 0" fill="#937fe6"/></svg>`,
+	farmer: `<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
     viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
 <path style="fill:#FB403F;" d="M391.79,438.81v65.69c0,4.14-3.36,7.5-7.5,7.5H127.71c-4.14,0-7.5-3.36-7.5-7.5v-65.69
    c0-45.69,37.17-82.87,82.86-82.87h105.86C354.62,355.94,391.79,393.12,391.79,438.81z"/>
@@ -346,10 +391,10 @@ let rolesSVG = {
        c-3.4,0-6.167,2.767-6.167,6.167s2.767,6.167,6.167,6.167s6.166-2.766,6.166-6.167S196.376,451.167,192.976,451.167z"/>
 </g>
         </svg>`,
-        hunter: `<svg viewBox="0 0 511.99981 511" xmlns="http://www.w3.org/2000/svg"><path d="m503.148438 510.902344c-1.921876 0-3.839844-.730469-5.304688-2.195313l-492.039062-492.042969c-2.929688-2.929687-2.929688-7.675781 0-10.605468 2.929687-2.929688 7.675781-2.929688 10.605468 0l492.042969 492.039062c2.925781 2.933594 2.925781 7.679688 0 10.609375-1.46875 1.464844-3.386719 2.195313-5.304687 2.195313zm0 0" fill="#c9caca"/><path d="m161.421875 337.960938-32.167969-6.085938c-5.113281-.964844-10.371094.65625-14.050781 4.335938l-51.769531 51.769531c-4.398438 4.398437-2.074219 11.929687 4.039062 13.085937l36.957032 6.992188 6.992187 36.957031c1.15625 6.113281 8.683594 8.4375 13.085937 4.035156l51.769532-51.769531c3.679687-3.679688 5.300781-8.9375 4.332031-14.046875l-6.085937-32.167969c-1.257813-6.648437-6.457032-11.847656-13.101563-13.105468zm0 0" fill="#e15f76"/><path d="m129.253906 331.878906c-5.113281-.96875-10.371094.652344-14.050781 4.332032l-51.769531 51.769531c-4.398438 4.398437-2.074219 11.929687 4.039062 13.085937l36.957032 6.992188 65.5625-65.566406c-2.289063-2.285157-5.25-3.902344-8.574219-4.53125zm0 0" fill="#cb556a"/><path d="m104.429688 415.558594c-1.921876 0-3.839844-.730469-5.304688-2.195313-2.929688-2.929687-2.929688-7.679687 0-10.609375l340.386719-340.386718c2.929687-2.929688 7.679687-2.933594 10.609375 0 2.929687 2.929687 2.929687 7.675781 0 10.605468l-340.390625 340.390625c-1.464844 1.464844-3.382813 2.195313-5.300781 2.195313zm0 0" fill="#7a4f42"/><path d="m199.398438 35.660156h-85.578126c-34.65625 0-68.34375-11.425781-95.851562-32.511718l-.441406-.335938c-4.433594-3.398438-10.519532-2.996094-14.355469.84375-4.230469 4.226562-4.230469 11.082031 0 15.308594l4.957031 4.960937c29.546875 29.546875 69.617188 46.144531 111.402344 46.144531h74.761719c7.390625 0 14.480469 2.9375 19.710937 8.164063l220.25 220.25c5.226563 5.226563 8.164063 12.316406 8.164063 19.710937v74.761719c0 41.78125 16.597656 81.851563 46.140625 111.398438l4.960937 4.960937c4.226563 4.226563 11.082031 4.226563 15.308594 0 3.839844-3.839844 4.242187-9.929687.9375-14.238281l-.433594-.566406c-21.078125-27.503907-32.503906-61.1875-32.503906-95.839844v-85.585937c0-13.246094-5.265625-25.953126-14.632813-35.320313l-113.738281-113.738281-113.734375-113.738282c-9.367187-9.367187-22.074218-14.628906-35.324218-14.628906zm0 0" fill="#9b6a57"/><path d="m507.398438 495.4375-4.960938-4.960938c-29.542969-29.546874-46.140625-69.617187-46.140625-111.402343v-74.761719c0-7.390625-2.9375-14.480469-8.164063-19.710938l-110.125-110.121093-110.125-110.125c-5.226562-5.226563-12.316406-8.164063-19.710937-8.164063h-74.761719c-41.78125 0-81.855468-16.597656-111.398437-46.144531l-4.960938-4.960937c-1.144531-1.140626-1.964843-2.480469-2.492187-3.902344-3.917969-1.441406-8.351563-.5625-11.386719 2.472656-4.230469 4.226562-4.230469 11.082031 0 15.308594l4.957031 4.960937c29.546875 29.546875 69.617188 46.144531 111.402344 46.144531h74.761719c7.390625 0 14.480469 2.9375 19.710937 8.164063l220.25 220.25c5.226563 5.226563 8.164063 12.316406 8.164063 19.710937v74.761719c0 41.78125 16.597656 81.851563 46.140625 111.398438l4.960937 4.960937c4.226563 4.226563 11.082031 4.226563 15.308594 0 3.050781-3.046875 3.921875-7.511718 2.503906-11.378906-1.433593-.523438-2.78125-1.351562-3.933593-2.5zm0 0" fill="#8b5f4e"/><path d="m400.140625 215.054688-24.984375 24.984374c-3.449219 3.453126-9.042969 3.453126-12.492188 0l-90.21875-90.21875c-3.449218-3.449218-3.449218-9.039062 0-12.492187l24.984376-24.984375c3.449218-3.449219 9.042968-3.449219 12.492187 0l90.21875 90.21875c3.449219 3.453125 3.449219 9.042969 0 12.492188zm0 0" fill="#f9993e"/><path d="m376.542969 226.160156-90.21875-90.21875c-3.449219-3.449218-3.449219-9.042968 0-12.492187l-13.878907 13.878906c-3.449218 3.453125-3.449218 9.042969 0 12.492187l90.21875 90.21875c3.449219 3.453126 9.042969 3.453126 12.492188 0l13.878906-13.878906c-3.449218 3.449219-9.039062 3.449219-12.492187 0zm0 0" fill="#e58d39"/><path d="m489.9375 14.40625-80.449219 30.449219c-4.292969 1.625-5.476562 7.132812-2.230469 10.375l24.996094 25 25 25c3.242188 3.242187 8.753906 2.058593 10.375-2.230469l30.453125-80.449219c1.925781-5.089843-3.054687-10.074219-8.144531-8.144531zm0 0" fill="#c9caca"/><path d="m489.9375 14.40625-80.449219 30.449219c-4.292969 1.625-5.476562 7.132812-2.230469 10.375l24.996094 25 64.386719-64.382813c-1.640625-1.644531-4.160156-2.40625-6.703125-1.441406zm0 0" fill="#b7b7b7"/><g fill="#d3792f"><path d="m400.933594 203.480469-54.15625 20.675781-11.960938-11.960938 54.230469-20.726562 11.09375 11.09375c.289063.289062.558594.597656.792969.917969zm0 0"/><path d="m369.390625 171.8125-54.226563 20.726562-11.972656-11.96875 54.230469-20.71875zm0 0"/><path d="m337.765625 140.195312-54.230469 20.71875-11.09375-11.09375c-.289062-.289062-.546875-.589843-.78125-.90625l54.132813-20.6875zm0 0"/></g></svg>`,
-        witch: `<svg id="Capa_1" enable-background="new 0 0 497.237 497.237" height="512" viewBox="0 0 497.237 497.237" width="512" xmlns="http://www.w3.org/2000/svg"><g><path d="m388.238 341.076c64.642 15.432 107.035 41.279 107.035 70.565 0 47.273-110.431 85.596-246.654 85.596s-246.654-38.322-246.654-85.595c0-30.122 44.842-56.606 112.617-71.861l112.049-10.655h110.963z" fill="#bd80e1"/><g><g><g id="XMLID_171_"><g><path d="m409.218 346.683c-6.693-1.994-13.694-3.867-20.98-5.607l-50.644-11.951h-106.025-4.939l-112.049 10.655c-67.774 15.256-112.616 41.74-112.616 71.862 0 47.273 110.431 85.596 246.654 85.596 31.233 0 61.102-2.02 88.603-5.695-10.066.434-20.318.66-30.722.66-136.223 0-246.654-38.323-246.654-85.596 0-11.857 6.95-23.15 19.512-33.416 4.357-3.561 10.853-.206 10.359 5.399-.477 5.406-.886 10.856-1.219 16.351-.786 12.667 6.43 24.739 17.962 30.042 27.307 12.545 55.054 21.624 82.471 26.984l1.841.36 115.454.703 1.849-.339c29.015-5.318 58.381-14.792 87.275-28.158 11.222-5.186 18.273-16.517 17.964-28.859-.403-16.275-1.856-32.675-4.096-48.991z" fill="#af66da"/><path d="m149.321 397.985 203.581-2.847 35.834-50.743c-12.643-85.981-48.084-169.442-72.02-218.479-1.419-2.908.888-6.243 4.11-5.946l66.273 6.11c16.81 1.54 26.15-18.97 13.95-30.63l-92.04-87.95c-5.03-4.81-11.73-7.5-18.69-7.5-3.86 0-7.63.82-11.07 2.37-3.45 1.54-6.57 3.8-9.13 6.68-29.746 33.417-129.972 157.345-156.336 336.115z" fill="#cb97e7"/></g><g><g><path d="m315.758 126.154c-2.756 0-5.407-1.523-6.719-4.157-11.534-23.155-19.768-37.179-19.85-37.318-2.101-3.569-.912-8.167 2.657-10.268 3.57-2.103 8.165-.912 10.268 2.655.344.584 8.559 14.569 20.351 38.243 1.848 3.708.339 8.21-3.369 10.058-1.073.533-2.215.787-3.338.787z" fill="#af66da"/></g></g></g></g><path d="m309.009 7.5c-5.03-4.81-11.73-7.5-18.69-7.5-3.86 0-7.63.82-11.07 2.37-3.45 1.54-6.57 3.8-9.13 6.68-29.747 33.417-129.975 157.348-156.337 336.122l14.278 30.624 33.264-12.554c27.25-176.627 126.217-298.958 155.742-332.126 2.56-2.88 5.68-5.14 9.13-6.68.123-.055.249-.103.373-.156z" fill="#bd80e1"/><g id="XMLID_172_"><g><path d="m114.809 345.55c26.29 12.08 52.58 20.64 78.86 25.69l36.12 9.07h42.67l31.29-8.43c27.74-5.01 55.47-13.93 83.21-26.76l1.78-.73c2.54 17.24 4.16 34.59 4.58 51.78.11 4.36-2.4 8.38-6.36 10.21-27.5 12.72-54.99 21.6-82.49 26.64l-111.7-.68c-25.98-5.08-51.97-13.59-77.96-25.53-4.11-1.89-6.63-6.12-6.35-10.63 1.06-17.44 2.869-34.506 5.309-51.036z" fill="#bc7c63"/></g></g><g id="XMLID_173_"><g><path d="m304.469 376.94v62.41c0 10.26-8.32 18.58-18.58 18.58h-74.54c-10.26 0-18.58-8.32-18.58-18.58v-62.41c0-10.26 8.32-18.58 18.58-18.58h74.54c10.26 0 18.58 8.32 18.58 18.58zm-30 47.006v-31.602c0-2.2-1.784-3.984-3.984-3.984h-43.732c-2.2 0-3.984 1.784-3.984 3.984v31.602c0 2.2 1.784 3.984 3.984 3.984h43.732c2.2 0 3.984-1.784 3.984-3.984z" fill="#fee97d"/></g></g><g><path d="m239.793 415.647h-55.498c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h55.498c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#fef0ae"/></g></g><path d="m161.322 363.242c-15.503-4.678-31.008-10.568-46.514-17.692l-1.041-.406c-2.44 16.53-4.249 33.596-5.309 51.036-.28 4.51 2.24 8.74 6.35 10.63 13.776 6.329 27.552 11.684 41.327 16.085-.565-1.451-.83-3.031-.729-4.649 1.145-18.864 3.17-37.207 5.916-55.004z" fill="#aa6a51"/></g></svg>`
-    }
-    //#endregion
+	hunter: `<svg viewBox="0 0 511.99981 511" xmlns="http://www.w3.org/2000/svg"><path d="m503.148438 510.902344c-1.921876 0-3.839844-.730469-5.304688-2.195313l-492.039062-492.042969c-2.929688-2.929687-2.929688-7.675781 0-10.605468 2.929687-2.929688 7.675781-2.929688 10.605468 0l492.042969 492.039062c2.925781 2.933594 2.925781 7.679688 0 10.609375-1.46875 1.464844-3.386719 2.195313-5.304687 2.195313zm0 0" fill="#c9caca"/><path d="m161.421875 337.960938-32.167969-6.085938c-5.113281-.964844-10.371094.65625-14.050781 4.335938l-51.769531 51.769531c-4.398438 4.398437-2.074219 11.929687 4.039062 13.085937l36.957032 6.992188 6.992187 36.957031c1.15625 6.113281 8.683594 8.4375 13.085937 4.035156l51.769532-51.769531c3.679687-3.679688 5.300781-8.9375 4.332031-14.046875l-6.085937-32.167969c-1.257813-6.648437-6.457032-11.847656-13.101563-13.105468zm0 0" fill="#e15f76"/><path d="m129.253906 331.878906c-5.113281-.96875-10.371094.652344-14.050781 4.332032l-51.769531 51.769531c-4.398438 4.398437-2.074219 11.929687 4.039062 13.085937l36.957032 6.992188 65.5625-65.566406c-2.289063-2.285157-5.25-3.902344-8.574219-4.53125zm0 0" fill="#cb556a"/><path d="m104.429688 415.558594c-1.921876 0-3.839844-.730469-5.304688-2.195313-2.929688-2.929687-2.929688-7.679687 0-10.609375l340.386719-340.386718c2.929687-2.929688 7.679687-2.933594 10.609375 0 2.929687 2.929687 2.929687 7.675781 0 10.605468l-340.390625 340.390625c-1.464844 1.464844-3.382813 2.195313-5.300781 2.195313zm0 0" fill="#7a4f42"/><path d="m199.398438 35.660156h-85.578126c-34.65625 0-68.34375-11.425781-95.851562-32.511718l-.441406-.335938c-4.433594-3.398438-10.519532-2.996094-14.355469.84375-4.230469 4.226562-4.230469 11.082031 0 15.308594l4.957031 4.960937c29.546875 29.546875 69.617188 46.144531 111.402344 46.144531h74.761719c7.390625 0 14.480469 2.9375 19.710937 8.164063l220.25 220.25c5.226563 5.226563 8.164063 12.316406 8.164063 19.710937v74.761719c0 41.78125 16.597656 81.851563 46.140625 111.398438l4.960937 4.960937c4.226563 4.226563 11.082031 4.226563 15.308594 0 3.839844-3.839844 4.242187-9.929687.9375-14.238281l-.433594-.566406c-21.078125-27.503907-32.503906-61.1875-32.503906-95.839844v-85.585937c0-13.246094-5.265625-25.953126-14.632813-35.320313l-113.738281-113.738281-113.734375-113.738282c-9.367187-9.367187-22.074218-14.628906-35.324218-14.628906zm0 0" fill="#9b6a57"/><path d="m507.398438 495.4375-4.960938-4.960938c-29.542969-29.546874-46.140625-69.617187-46.140625-111.402343v-74.761719c0-7.390625-2.9375-14.480469-8.164063-19.710938l-110.125-110.121093-110.125-110.125c-5.226562-5.226563-12.316406-8.164063-19.710937-8.164063h-74.761719c-41.78125 0-81.855468-16.597656-111.398437-46.144531l-4.960938-4.960937c-1.144531-1.140626-1.964843-2.480469-2.492187-3.902344-3.917969-1.441406-8.351563-.5625-11.386719 2.472656-4.230469 4.226562-4.230469 11.082031 0 15.308594l4.957031 4.960937c29.546875 29.546875 69.617188 46.144531 111.402344 46.144531h74.761719c7.390625 0 14.480469 2.9375 19.710937 8.164063l220.25 220.25c5.226563 5.226563 8.164063 12.316406 8.164063 19.710937v74.761719c0 41.78125 16.597656 81.851563 46.140625 111.398438l4.960937 4.960937c4.226563 4.226563 11.082031 4.226563 15.308594 0 3.050781-3.046875 3.921875-7.511718 2.503906-11.378906-1.433593-.523438-2.78125-1.351562-3.933593-2.5zm0 0" fill="#8b5f4e"/><path d="m400.140625 215.054688-24.984375 24.984374c-3.449219 3.453126-9.042969 3.453126-12.492188 0l-90.21875-90.21875c-3.449218-3.449218-3.449218-9.039062 0-12.492187l24.984376-24.984375c3.449218-3.449219 9.042968-3.449219 12.492187 0l90.21875 90.21875c3.449219 3.453125 3.449219 9.042969 0 12.492188zm0 0" fill="#f9993e"/><path d="m376.542969 226.160156-90.21875-90.21875c-3.449219-3.449218-3.449219-9.042968 0-12.492187l-13.878907 13.878906c-3.449218 3.453125-3.449218 9.042969 0 12.492187l90.21875 90.21875c3.449219 3.453126 9.042969 3.453126 12.492188 0l13.878906-13.878906c-3.449218 3.449219-9.039062 3.449219-12.492187 0zm0 0" fill="#e58d39"/><path d="m489.9375 14.40625-80.449219 30.449219c-4.292969 1.625-5.476562 7.132812-2.230469 10.375l24.996094 25 25 25c3.242188 3.242187 8.753906 2.058593 10.375-2.230469l30.453125-80.449219c1.925781-5.089843-3.054687-10.074219-8.144531-8.144531zm0 0" fill="#c9caca"/><path d="m489.9375 14.40625-80.449219 30.449219c-4.292969 1.625-5.476562 7.132812-2.230469 10.375l24.996094 25 64.386719-64.382813c-1.640625-1.644531-4.160156-2.40625-6.703125-1.441406zm0 0" fill="#b7b7b7"/><g fill="#d3792f"><path d="m400.933594 203.480469-54.15625 20.675781-11.960938-11.960938 54.230469-20.726562 11.09375 11.09375c.289063.289062.558594.597656.792969.917969zm0 0"/><path d="m369.390625 171.8125-54.226563 20.726562-11.972656-11.96875 54.230469-20.71875zm0 0"/><path d="m337.765625 140.195312-54.230469 20.71875-11.09375-11.09375c-.289062-.289062-.546875-.589843-.78125-.90625l54.132813-20.6875zm0 0"/></g></svg>`,
+	witch: `<svg id="Capa_1" enable-background="new 0 0 497.237 497.237" height="512" viewBox="0 0 497.237 497.237" width="512" xmlns="http://www.w3.org/2000/svg"><g><path d="m388.238 341.076c64.642 15.432 107.035 41.279 107.035 70.565 0 47.273-110.431 85.596-246.654 85.596s-246.654-38.322-246.654-85.595c0-30.122 44.842-56.606 112.617-71.861l112.049-10.655h110.963z" fill="#bd80e1"/><g><g><g id="XMLID_171_"><g><path d="m409.218 346.683c-6.693-1.994-13.694-3.867-20.98-5.607l-50.644-11.951h-106.025-4.939l-112.049 10.655c-67.774 15.256-112.616 41.74-112.616 71.862 0 47.273 110.431 85.596 246.654 85.596 31.233 0 61.102-2.02 88.603-5.695-10.066.434-20.318.66-30.722.66-136.223 0-246.654-38.323-246.654-85.596 0-11.857 6.95-23.15 19.512-33.416 4.357-3.561 10.853-.206 10.359 5.399-.477 5.406-.886 10.856-1.219 16.351-.786 12.667 6.43 24.739 17.962 30.042 27.307 12.545 55.054 21.624 82.471 26.984l1.841.36 115.454.703 1.849-.339c29.015-5.318 58.381-14.792 87.275-28.158 11.222-5.186 18.273-16.517 17.964-28.859-.403-16.275-1.856-32.675-4.096-48.991z" fill="#af66da"/><path d="m149.321 397.985 203.581-2.847 35.834-50.743c-12.643-85.981-48.084-169.442-72.02-218.479-1.419-2.908.888-6.243 4.11-5.946l66.273 6.11c16.81 1.54 26.15-18.97 13.95-30.63l-92.04-87.95c-5.03-4.81-11.73-7.5-18.69-7.5-3.86 0-7.63.82-11.07 2.37-3.45 1.54-6.57 3.8-9.13 6.68-29.746 33.417-129.972 157.345-156.336 336.115z" fill="#cb97e7"/></g><g><g><path d="m315.758 126.154c-2.756 0-5.407-1.523-6.719-4.157-11.534-23.155-19.768-37.179-19.85-37.318-2.101-3.569-.912-8.167 2.657-10.268 3.57-2.103 8.165-.912 10.268 2.655.344.584 8.559 14.569 20.351 38.243 1.848 3.708.339 8.21-3.369 10.058-1.073.533-2.215.787-3.338.787z" fill="#af66da"/></g></g></g></g><path d="m309.009 7.5c-5.03-4.81-11.73-7.5-18.69-7.5-3.86 0-7.63.82-11.07 2.37-3.45 1.54-6.57 3.8-9.13 6.68-29.747 33.417-129.975 157.348-156.337 336.122l14.278 30.624 33.264-12.554c27.25-176.627 126.217-298.958 155.742-332.126 2.56-2.88 5.68-5.14 9.13-6.68.123-.055.249-.103.373-.156z" fill="#bd80e1"/><g id="XMLID_172_"><g><path d="m114.809 345.55c26.29 12.08 52.58 20.64 78.86 25.69l36.12 9.07h42.67l31.29-8.43c27.74-5.01 55.47-13.93 83.21-26.76l1.78-.73c2.54 17.24 4.16 34.59 4.58 51.78.11 4.36-2.4 8.38-6.36 10.21-27.5 12.72-54.99 21.6-82.49 26.64l-111.7-.68c-25.98-5.08-51.97-13.59-77.96-25.53-4.11-1.89-6.63-6.12-6.35-10.63 1.06-17.44 2.869-34.506 5.309-51.036z" fill="#bc7c63"/></g></g><g id="XMLID_173_"><g><path d="m304.469 376.94v62.41c0 10.26-8.32 18.58-18.58 18.58h-74.54c-10.26 0-18.58-8.32-18.58-18.58v-62.41c0-10.26 8.32-18.58 18.58-18.58h74.54c10.26 0 18.58 8.32 18.58 18.58zm-30 47.006v-31.602c0-2.2-1.784-3.984-3.984-3.984h-43.732c-2.2 0-3.984 1.784-3.984 3.984v31.602c0 2.2 1.784 3.984 3.984 3.984h43.732c2.2 0 3.984-1.784 3.984-3.984z" fill="#fee97d"/></g></g><g><path d="m239.793 415.647h-55.498c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h55.498c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#fef0ae"/></g></g><path d="m161.322 363.242c-15.503-4.678-31.008-10.568-46.514-17.692l-1.041-.406c-2.44 16.53-4.249 33.596-5.309 51.036-.28 4.51 2.24 8.74 6.35 10.63 13.776 6.329 27.552 11.684 41.327 16.085-.565-1.451-.83-3.031-.729-4.649 1.145-18.864 3.17-37.207 5.916-55.004z" fill="#aa6a51"/></g></svg>`,
+};
+//#endregion
 
 let cupidoPickedAmnt = 0;
 let cupidoPickedIds = [];
@@ -360,118 +405,166 @@ let cupidoPickedIds = [];
  * @param {WebSocket} socket - De Socket
  */
 function UserPickerClick(UserPicker, button, user, socket) {
-    if (UserPicker.isDay) {
-        UserPicker.children.forEach(child => {
-            child.querySelector('button').disabled = true;
-        })
-        button.style.background = "hsla(342, 97%, 62%, 0.3)";
-        socket.emit('!g-user-vote', user);
-    } else {
-        switch (UserPicker.mode) {
-            case "cupido":
-                cupidoPickedAmnt++;
-                // UserPicker.children.forEach(child => {
-                //     child.querySelector('button').style.background = "";
-                // })
-                button.style.background = "hsla(342, 97%, 62%, 0.3)";
-                cupidoPickedIds.push(button.dataset.userid);
-                if (cupidoPickedAmnt >= 2) {
-                    socket.emit('!g-cupido-choose', cupidoPickedIds);
-                    UserPicker.mode = "farmer"; // Set user to farmer after chosing lovers
-                    UserPicker.hide()
-                }
-                break;
-            case "werewolf":
-                UserPicker.children.forEach(child => {
-                    child.querySelector('button').disabled = true;
-                })
-                button.style.background = "hsla(342, 97%, 62%, 0.3)";
-                socket.emit('!g-werewolf-vote', user)
-                break;
-            case "witch":
-                if (UserPicker.witchAction !== 3) { // Selected action
-                    UserPicker.witchActionBar.classList.add('hidden')
-                    if (UserPicker.witchAction == 0) { // Kill
-                        document.querySelectorAll('.witch-picker-button')[0].disabled = true;
-                        UserPicker.children.forEach(child => {
-                            child.querySelector('button').disabled = true;
-                        })
-                        button.style.background = "hsla(342, 97%, 62%, 0.3)";
-                        socket.emit('!g-witch-choose', { action: 0, id: button.dataset.userid })
-                        setTimeout(() => { UserPicker.hide() }, 1500);
-                    }
-                    if (UserPicker.witchAction == 1) { // Skip
-                        UserPicker.hide();
-                    }
-                    if (UserPicker.witchAction == 2) { // Heal
-                        document.querySelectorAll('.witch-picker-button')[2].disabled = true;
-                        UserPicker.children.forEach(child => {
-                            child.querySelector('button').disabled = true;
-                        })
-                        button.style.background = "hsla(342, 97%, 62%, 0.3)";
-                        socket.emit('!g-witch-choose', { action: 0, id: button.dataset.userid })
-                        setTimeout(() => { UserPicker.hide() }, 1500);
-                    }
-                } else { // Not selected action
-                    document.querySelector('.overlay-witch').innerHTML = "<b>Selecteer eerst een actie!</b>";
-                    setTimeout(() => {
-                        document.querySelector('.overlay-witch').innerHTML = ""
-                    }, 1500)
-                }
-                break;
-            case "seer":
-                UserPicker.children.forEach(child => {
-                    child.querySelector('button').disabled = true;
-                })
-                button.style.background = "hsla(342, 97%, 62%, 0.3)";
-                document.querySelector('.overlay-seer').querySelector('.svg-icon').innerHTML = rolesSVG[user.role]
-                document.querySelector('.overlay-seer').querySelector('.svg-icon').classList.add('show')
-                setTimeout(() => {
-                    document.querySelector('.overlay-seer').querySelector('.svg-icon').classList.remove('show')
-                    document.querySelector('.overlay-seer').querySelector('.svg-icon').innerHTML = ""
-                    UserPicker.hide();
-                }, 2500)
-                break;
-        }
-    }
+	if (UserPicker.isDay) {
+		UserPicker.children.forEach((child) => {
+			child.querySelector("button").disabled = true;
+		});
+		button.style.background = "hsla(342, 97%, 62%, 0.3)";
+		socket.emit("!g-user-vote", user);
+	} else {
+		switch (UserPicker.mode) {
+			case "cupido":
+				cupidoPickedAmnt++;
+				// UserPicker.children.forEach(child => {
+				//     child.querySelector('button').style.background = "";
+				// })
+				button.style.background = "hsla(342, 97%, 62%, 0.3)";
+				cupidoPickedIds.push(button.dataset.userid);
+				if (cupidoPickedAmnt >= 2) {
+					socket.emit("!g-cupido-choose", cupidoPickedIds);
+					UserPicker.mode = "farmer"; // Set user to farmer after chosing lovers
+					UserPicker.busy = false;
+					UserPicker.hide();
+				}
+				break;
+			case "werewolf":
+				UserPicker.children.forEach((child) => {
+					child.querySelector("button").disabled = true;
+				});
+				button.style.background = "hsla(342, 97%, 62%, 0.3)";
+				socket.emit("!g-werewolf-vote", user);
+				break;
+			case "witch":
+				if (UserPicker.witchAction !== 3) {
+					// Selected action
+					UserPicker.witchActionBar.classList.add("hidden");
+					if (UserPicker.witchAction == 0) {
+						// Kill
+						document.querySelectorAll(
+							".witch-picker-button"
+						)[0].disabled = true;
+						UserPicker.children.forEach((child) => {
+							child.querySelector("button").disabled = true;
+						});
+						button.style.background = "hsla(342, 97%, 62%, 0.3)";
+						socket.emit("!g-witch-choose", {
+							action: 0,
+							id: button.dataset.userid,
+						});
+						setTimeout(() => {
+							UserPicker.busy = false;
+							UserPicker.hide();
+						}, 1500);
+
+						//Remove button, potion used
+						UserPicker.witchUsedPotions.death = true;
+						UserPicker.witchActionBar
+							.querySelector('[data-action="WITCH_KILL"]')
+							.remove();
+					}
+					if (UserPicker.witchAction == 1) {
+						// Skip
+						UserPicker.busy = false;
+						UserPicker.hide();
+					}
+					if (UserPicker.witchAction == 2) {
+						// Heal
+						document.querySelectorAll(
+							".witch-picker-button"
+						)[2].disabled = true;
+						UserPicker.children.forEach((child) => {
+							child.querySelector("button").disabled = true;
+						});
+						button.style.background = "hsla(342, 97%, 62%, 0.3)";
+						socket.emit("!g-witch-choose", {
+							action: 2,
+							id: button.dataset.userid,
+						});
+						setTimeout(() => {
+							UserPicker.busy = false;
+							UserPicker.hide();
+						}, 1500);
+
+						//Remove button, potion used
+						UserPicker.witchUsedPotions.life = true;
+						UserPicker.witchActionBar
+							.querySelector('[data-action="WITCH_HEAL"]')
+							.remove();
+					}
+				} else {
+					// Not selected action
+					document.querySelector(".overlay-witch").innerHTML =
+						"<b>Selecteer eerst een actie!</b>";
+					setTimeout(() => {
+						document.querySelector(".overlay-witch").innerHTML = "";
+					}, 1500);
+				}
+				break;
+			case "seer":
+				UserPicker.children.forEach((child) => {
+					child.querySelector("button").disabled = true;
+				});
+				button.style.background = "hsla(342, 97%, 62%, 0.3)";
+				document
+					.querySelector(".overlay-seer")
+					.querySelector(".svg-icon").innerHTML = rolesSVG[user.role];
+				document
+					.querySelector(".overlay-seer")
+					.querySelector(".svg-icon")
+					.classList.add("show");
+				setTimeout(() => {
+					document
+						.querySelector(".overlay-seer")
+						.querySelector(".svg-icon")
+						.classList.remove("show");
+					document
+						.querySelector(".overlay-seer")
+						.querySelector(".svg-icon").innerHTML = "";
+					UserPicker.busy = false;
+					UserPicker.hide();
+				}, 2500);
+				break;
+		}
+	}
 }
 
 /**
  * @param {UserPicker} UserPicker
  * @param {Array} votes
  */
-function updateVotesUI(UserPicker, votes){
-    UserPicker.children.forEach(child => {
-        let btn = child.querySelector('button');
-        const vote = votes.find(v => v.uuid == btn.dataset.userid)
-        btn.querySelector('.userVotes').textContent = vote ? vote.amount : "";
-    })
+function updateVotesUI(UserPicker, votes) {
+	UserPicker.children.forEach((child) => {
+		let btn = child.querySelector("button");
+		const vote = votes.find((v) => v.uuid == btn.dataset.userid);
+		btn.querySelector(".userVotes").textContent = vote ? vote.amount : "";
+	});
 }
 
 /**
  * @param {UserPicker} UserPicker
-*/
-function hunter(UserPicker){
-    UserPicker.show()
+ */
+function hunter(UserPicker) {
+	UserPicker.show();
 
-    UserPicker.children.forEach(child => {
-        /**
-         * @type {HTMLButtonElement} 
-         */
-        let btn = child.querySelector('button');
-        
-        btn.removeEventListener('click')
-        btn.addEventListener('click', () => {
-            UserPicker.children.forEach(child => {
-                child.querySelector('button').disabled = true;
-            })
-            button.style.background = "hsla(342, 97%, 62%, 0.3)";
-            socket.emit('!g-hunter-choose', { id: button.dataset.userid })
-            socket.emit('!a-send-deaths')
-            setTimeout(() => { 
-                UserPicker.hide()
-                UserPicker.die()
-            }, 1500);
-        })
-    })
+	UserPicker.children.forEach((child) => {
+		/**
+		 * @type {HTMLButtonElement}
+		 */
+		let btn = child.querySelector("button");
+
+		btn.removeEventListener("click", UserPickerClick);
+		btn.addEventListener("click", () => {
+			UserPicker.children.forEach((child) => {
+				child.querySelector("button").disabled = true;
+			});
+			button.style.background = "hsla(342, 97%, 62%, 0.3)";
+			socket.emit("!g-hunter-choose", { id: button.dataset.userid });
+			socket.emit("!a-send-deaths");
+			setTimeout(() => {
+				UserPicker.busy = false;
+				UserPicker.hide();
+				UserPicker.die();
+			}, 1500);
+		});
+	});
 }
